@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, GitBranch, ChevronDown, ChevronUp } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MiniFlowchart } from './MiniFlowchart';
-import { FlowCanvas } from './FlowCanvas';
 import { useIDEStore } from '@/store/useIDEStore';
 
 interface ChatPanelProps {
@@ -73,7 +72,6 @@ export function ChatPanel({ onSendMessage }: ChatPanelProps) {
       {/* Flowchart */}
       {showFlowchart && planNodes.length > 0 && (
         <div className="border-b border-zinc-800/50">
-          <FlowCanvas planNodes={planNodes} onNodeToggle={toggleNodeExpansion} />
           <MiniFlowchart nodes={planNodes} onToggleNode={toggleNodeExpansion} />
         </div>
       )}
