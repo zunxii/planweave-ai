@@ -6,6 +6,7 @@ import { CodeEditor } from './CodeEditor';
 import { ChatPanel } from './ChatPanel';
 import { TopBar } from './TopBar';
 import { useEffect } from 'react';
+import { nanoid } from 'nanoid';
 import { syncStore } from '@/services/langchain/syncStore';
 
 export function PlanWeaveIDE() {
@@ -42,7 +43,7 @@ export function PlanWeaveIDE() {
 
   const handleSendMessage = async (content: string) => {
     const userMessage = { 
-      id: Date.now().toString(), 
+      id:nanoid(), 
       role: 'user' as const, 
       content, 
       timestamp: new Date() 
@@ -54,7 +55,7 @@ export function PlanWeaveIDE() {
     setIsThinking(false);
 
     const assistantMessage = { 
-      id: (Date.now() + 1).toString(), 
+      id:nanoid(), 
       role: 'assistant' as const, 
       content: reply, 
       timestamp: new Date() 
