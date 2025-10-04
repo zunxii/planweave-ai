@@ -1,34 +1,54 @@
-import { useState, useCallback } from 'react';
-import type { Message } from '@/types/planweave';
+import { useState, useEffect } from 'react';
+import { getSessionId } from '@/lib/session';
+import { useIDEStore } from '@/store/useIDEStore';
 
 export function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
+  const files = useIDEStore(state => state.files);
 
-  const sendMessage = useCallback(async (content: string) => {
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setIsThinking(true);
-
-    // Simulate AI response
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: 'I understand. Let me help you plan this...',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, assistantMessage]);
-    setIsThinking(false);
+  useEffect(() => {
+    const sid = getSessionId();
+    if (!sid) {
+      console.error('Session ID could not be retrieved.');
+    }
+    setSessionId(sid);
   }, []);
 
-  return { messages, sendMessage, isThinking };
+  async function sendMessage(message: string) {
+    if (!sessionId) {
+      console.error('Cannot send message: sessionId not ready');
+      return { reply: 'Session not ready yet.' };
+    }
+
+    setIsThinking(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sessionId, 
+          message,
+          files // Send current files with every message
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('API returned error:', res.status, errText);
+        return { reply: 'Error from API' };
+      }
+
+      const data = await res.json();
+      console.log('Received reply from API');
+      return data; 
+    } catch (err) {
+      console.error('Error sending message:', err);
+      return { reply: 'Failed to send message' };
+    } finally {
+      setIsThinking(false);
+    }
+  }
+
+  return { sendMessage, isThinking, sessionId };
 }

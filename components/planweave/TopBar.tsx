@@ -1,13 +1,12 @@
 'use client';
 
 import { Layers, Circle } from 'lucide-react';
+import { useIDEStore } from '@/store/useIDEStore';
 
-interface TopBarProps {
-  currentFile: string;
-  showFlowchart: boolean;
-}
+export function TopBar() {
+  const currentFile = useIDEStore(state => state.currentFilePath);
+  const showFlowchart = useIDEStore(state => state.showFlowchart);
 
-export function TopBar({ currentFile, showFlowchart }: TopBarProps) {
   return (
     <div className="h-12 glass-panel border-b flex items-center px-4 justify-between">
       <div className="flex items-center gap-3">
@@ -16,7 +15,7 @@ export function TopBar({ currentFile, showFlowchart }: TopBarProps) {
           <span className="text-lg font-medium text-zinc-300">PlanWeave</span>
         </div>
         <div className="h-4 w-px bg-zinc-800" />
-        <span className="text-xs text-zinc-600 font-mono">{currentFile}</span>
+        <span className="text-xs text-zinc-600 font-mono">{currentFile || 'No file selected'}</span>
       </div>
 
       <div className="flex items-center gap-2">
