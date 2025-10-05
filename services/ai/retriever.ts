@@ -1,4 +1,4 @@
-import { OpenAIEmbeddings } from '@langchain/openai';
+import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import type { FileItem } from '@/types/planweave';
 
@@ -8,9 +8,9 @@ const vectorStores = new Map<string, MemoryVectorStore>();
 async function getStore(sessionId: string = 'default') {
   if (!vectorStores.has(sessionId)) {
     const store = new MemoryVectorStore(
-      new OpenAIEmbeddings({ 
-        model: 'text-embedding-3-small',
-        openAIApiKey: process.env.OPENAI_API_KEY 
+      new GoogleGenerativeAIEmbeddings({ 
+        model: 'embedding-001',
+        apiKey: process.env.GOOGLE_API_KEY 
       })
     );
     vectorStores.set(sessionId, store);
@@ -28,9 +28,9 @@ export async function indexFiles(files: FileItem[], sessionId: string = 'default
   
   // Clear existing documents for this session
   vectorStores.set(sessionId, new MemoryVectorStore(
-    new OpenAIEmbeddings({ 
-      model: 'text-embedding-3-small',
-      openAIApiKey: process.env.OPENAI_API_KEY 
+    new GoogleGenerativeAIEmbeddings({ 
+      model: 'embedding-001',
+      apiKey: process.env.GOOGLE_API_KEY 
     })
   ));
   
@@ -72,9 +72,9 @@ export async function retrieveRelevant(query: string, sessionId: string = 'defau
 
 export async function clearVectorStore(sessionId: string = 'default') {
   vectorStores.set(sessionId, new MemoryVectorStore(
-    new OpenAIEmbeddings({ 
-      model: 'text-embedding-3-small',
-      openAIApiKey: process.env.OPENAI_API_KEY 
+    new GoogleGenerativeAIEmbeddings({ 
+      model: 'embedding-001',
+      apiKey: process.env.GOOGLE_API_KEY 
     })
   ));
   console.log(`Vector store cleared for session ${sessionId}`);
