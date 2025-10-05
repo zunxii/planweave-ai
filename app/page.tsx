@@ -1,4 +1,4 @@
-import { PlanWeaveIDE } from '@/components/planweave/PlanWeaveIDE';
+import { PlanWeaveIDE } from '@/components/PlanWeaveIDE';
 
 export default function Home() {
   return (

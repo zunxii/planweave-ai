@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSessionId } from '@/lib/session';
-import { useIDEStore } from '@/store/useIDEStore';
+import { useIDEStore } from '@/store';
 
 export function useChat() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export function useChat() {
         body: JSON.stringify({ 
           sessionId, 
           message,
-          files // Send current files with every message
+          files
         }),
       });
 
@@ -44,29 +44,25 @@ export function useChat() {
       }
 
       const data = await res.json();
-      console.log(' Received reply from API');
+      console.log('✓ Received reply from API');
 
-      // Check if a plan was generated
       if (data.shouldCreatePlan && data.plan) {
-        console.log(' Creating execution plan in store...');
+        console.log('✓ Creating execution plan in store...');
         
-        // Create plan in store
         const planId = createPlan(data.plan);
         
-        // Activate plan and open canvas
         setActivePlan(planId);
         setCanvasOpen(true);
         
-        // Show notification
         addNotification({
           type: 'success',
-          title: '✨ Execution Plan Created',
+          title: ' Execution Plan Created',
           message: 'Your step-by-step plan is ready! Toggle the canvas to see details.',
           autoHide: true,
           duration: 5000,
         });
 
-        console.log(' Plan created and activated:', planId);
+        console.log('✓ Plan created and activated:', planId);
         
         return { 
           reply: data.reply,
