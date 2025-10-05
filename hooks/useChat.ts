@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getSessionId } from '@/lib/session';
 import { useIDEStore } from '@/store/useIDEStore';
+import { isPlanRequest, parsePlanFromResponse, enrichPlanWithCode } from '@/services/ai/planParser';
 
 export function useChat() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isThinking, setIsThinking] = useState(false);
   const files = useIDEStore(state => state.files);
+  const createPlan = useIDEStore(state => state.createPlan);
+  const addNotification = useIDEStore(state => state.addNotification);
 
   useEffect(() => {
     const sid = getSessionId();
@@ -41,6 +44,37 @@ export function useChat() {
 
       const data = await res.json();
       console.log('Received reply from API');
+
+      // Check if this is a plan request and response contains a plan
+      if (isPlanRequest(message)) {
+        const plan = parsePlanFromResponse(data.reply, message);
+        
+        if (plan) {
+          // Enrich plan with code blocks from response
+          const enrichedPlan = enrichPlanWithCode(plan, data.reply);
+          
+          // Create plan in store
+          const planId = createPlan(enrichedPlan);
+          
+          // Show notification
+          addNotification({
+            type: 'success',
+            title: ' Plan Created',
+            message: 'Your execution plan is ready. Check the Canvas Mode!',
+            autoHide: true,
+            duration: 5000,
+          });
+
+          console.log(' Created execution plan:', planId);
+          
+          return { 
+            reply: data.reply,
+            planCreated: true,
+            planId 
+          };
+        }
+      }
+      
       return data; 
     } catch (err) {
       console.error('Error sending message:', err);

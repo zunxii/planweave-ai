@@ -5,6 +5,8 @@ import { useChat } from '@/hooks/useChat';
 import { CodeEditor } from './CodeEditor';
 import { ChatPanel } from './ChatPanel';
 import { TopBar } from './TopBar';
+import { CanvasMode } from './CanvasMode';
+import { NotificationToast } from './NotificationToast';
 import { useEffect } from 'react';
 import { nanoid } from 'nanoid';
 import { syncStore } from '@/services/langchain/syncStore';
@@ -17,6 +19,7 @@ export function PlanWeaveIDE() {
   const addFile = useIDEStore(state => state.addFile);
   const deleteFile = useIDEStore(state => state.deleteFile);
   const renameFile = useIDEStore(state => state.renameFile);
+  const canvas = useIDEStore(state => state.canvas);
 
   const { sendMessage, sessionId } = useChat();
   const addMessage = useIDEStore(state => state.addMessage);
@@ -43,7 +46,7 @@ export function PlanWeaveIDE() {
 
   const handleSendMessage = async (content: string) => {
     const userMessage = { 
-      id:nanoid(), 
+      id: nanoid(), 
       role: 'user' as const, 
       content, 
       timestamp: new Date() 
@@ -55,7 +58,7 @@ export function PlanWeaveIDE() {
     setIsThinking(false);
 
     const assistantMessage = { 
-      id:nanoid(), 
+      id: nanoid(), 
       role: 'assistant' as const, 
       content: reply, 
       timestamp: new Date() 
@@ -92,18 +95,30 @@ export function PlanWeaveIDE() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-black">
       <TopBar />
+      
       <div className="flex-1 flex overflow-hidden">
+        {/* Chat Panel - Left Side */}
         <ChatPanel onSendMessage={handleSendMessage} />
-        <CodeEditor
-          onFileChange={updateFileContent}
-          onFileSelect={setCurrentFilePath}
-          onAddFile={handleAddFile}
-          onDeleteFile={deleteFile}
-          onRenameFile={handleRenameFile}
-        />
+        
+        {/* Code Editor - Center/Right */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <CodeEditor
+            onFileChange={updateFileContent}
+            onFileSelect={setCurrentFilePath}
+            onAddFile={handleAddFile}
+            onDeleteFile={deleteFile}
+            onRenameFile={handleRenameFile}
+          />
+        </div>
+
+        {/* Canvas Mode - Absolute positioned overlay */}
+        <CanvasMode />
       </div>
+
+      {/* Notifications */}
+      <NotificationToast />
     </div>
   );
 }
