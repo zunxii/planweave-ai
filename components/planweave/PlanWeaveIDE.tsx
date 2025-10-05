@@ -3,9 +3,8 @@
 import { useIDEStore } from '@/store/useIDEStore';
 import { useChat } from '@/hooks/useChat';
 import { CodeEditor } from './CodeEditor';
-import { ChatPanel } from './ChatPanel';
+import { ExpandableChatPanel } from './ExpandableChatPanel';
 import { TopBar } from './TopBar';
-import { CanvasMode } from './CanvasMode';
 import { NotificationToast } from './NotificationToast';
 import { useEffect } from 'react';
 import { nanoid } from 'nanoid';
@@ -19,7 +18,6 @@ export function PlanWeaveIDE() {
   const addFile = useIDEStore(state => state.addFile);
   const deleteFile = useIDEStore(state => state.deleteFile);
   const renameFile = useIDEStore(state => state.renameFile);
-  const canvas = useIDEStore(state => state.canvas);
 
   const { sendMessage, sessionId } = useChat();
   const addMessage = useIDEStore(state => state.addMessage);
@@ -99,10 +97,10 @@ export function PlanWeaveIDE() {
       <TopBar />
       
       <div className="flex-1 flex overflow-hidden">
-        {/* Chat Panel - Left Side */}
-        <ChatPanel onSendMessage={handleSendMessage} />
+        {/* Expandable Chat Panel with Canvas */}
+        <ExpandableChatPanel onSendMessage={handleSendMessage} />
         
-        {/* Code Editor - Center/Right */}
+        {/* Code Editor - Takes remaining space */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <CodeEditor
             onFileChange={updateFileContent}
@@ -112,9 +110,6 @@ export function PlanWeaveIDE() {
             onRenameFile={handleRenameFile}
           />
         </div>
-
-        {/* Canvas Mode - Absolute positioned overlay */}
-        <CanvasMode />
       </div>
 
       {/* Notifications */}

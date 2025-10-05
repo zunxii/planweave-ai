@@ -1,13 +1,12 @@
 'use client';
 
-import { Layers, Circle, Target, TrendingUp } from 'lucide-react';
+import { Layers, Target, TrendingUp } from 'lucide-react';
 import { useIDEStore } from '@/store/useIDEStore';
 
 export function TopBar() {
   const currentFile = useIDEStore(state => state.currentFilePath);
-  const canvas = useIDEStore(state => state.canvas);
-  const toggleCanvas = useIDEStore(state => state.toggleCanvas);
   const activePlan = useIDEStore(state => state.getActivePlan());
+  const canvas = useIDEStore(state => state.canvas);
 
   return (
     <div className="h-12 glass-panel border-b flex items-center px-4 justify-between">
@@ -24,10 +23,10 @@ export function TopBar() {
 
       <div className="flex items-center gap-3">
         {/* Active Plan Status */}
-        {activePlan && (
+        {activePlan && canvas.isOpen && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900/50 border border-zinc-800/50">
             <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
-            <span className="text-xs text-zinc-400">{activePlan.title}</span>
+            <span className="text-xs text-zinc-400 max-w-[200px] truncate">{activePlan.title}</span>
             <div className="flex items-center gap-1">
               <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                 <div
@@ -42,25 +41,19 @@ export function TopBar() {
           </div>
         )}
 
-        {/* Canvas Toggle Button */}
-        <button
-          onClick={toggleCanvas}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
+        {/* Canvas Status Indicator */}
+        {activePlan && (
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${
             canvas.isOpen
-              ? 'bg-violet-600 text-white'
-              : 'bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 border border-zinc-800/50 hover:border-zinc-700'
-          }`}
-        >
-          <Target className="w-3.5 h-3.5" />
-          <span className="text-xs font-medium">Canvas</span>
-          {activePlan && (
-            <Circle 
-              className={`w-2 h-2 ${
-                canvas.isOpen ? 'fill-white text-white' : 'fill-violet-500 text-violet-500'
-              }`} 
-            />
-          )}
-        </button>
+              ? 'bg-violet-600/20 border border-violet-600/30'
+              : 'bg-zinc-900/50 border border-zinc-800/50'
+          }`}>
+            <Target className="w-3.5 h-3.5 text-violet-400" />
+            <span className="text-xs font-medium text-zinc-300">
+              {canvas.isOpen ? 'Canvas Active' : 'Canvas Ready'}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
