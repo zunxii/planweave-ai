@@ -8,7 +8,7 @@ export async function getChainForSession(sessionId: string) {
   if (chainMap.has(sessionId)) return chainMap.get(sessionId);
 
   const llm = new ChatGoogleGenerativeAI({ 
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.5-flash',
     temperature: 0.1,
     apiKey: process.env.GOOGLE_API_KEY,
     maxOutputTokens: 8192,

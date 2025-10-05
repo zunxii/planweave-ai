@@ -21,18 +21,18 @@ export function MessageBubble({ message }: MessageBubbleProps) {
     : null;
 
   return (
-    <div className={`flex gap-3 animate-in ${isUser ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-3 animate-slide-in ${isUser ? 'flex-row-reverse' : ''}`}>
       <MessageAvatar role={message.role} />
 
       <div className={`flex-1 ${isUser ? 'max-w-[85%]' : 'max-w-full'}`}>
         {message.planUpdate && <PlanBadge />}
 
-        <div className={`rounded-2xl p-3 ${
+        <div className={`rounded-2xl p-4 smooth-transition ${
           isUser 
-            ? 'bg-zinc-800/80 rounded-tr-sm ml-auto' 
+            ? 'surface-card rounded-tr-sm ml-auto' 
             : associatedPlan
-            ? 'glass-panel border border-zinc-800/50 rounded-tl-sm'
-            : 'glass-subtle rounded-tl-sm'
+            ? 'surface-elevated rounded-tl-sm'
+            : 'surface-card rounded-tl-sm'
         }`}>
           <MessageContent content={message.content} isUser={isUser} />
 
@@ -47,7 +47,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
 
         {associatedPlan && <PlanCard plan={associatedPlan} />}
         
-        <p className={`text-xs text-zinc-700 mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
+        <p className={`text-xs text-[#64748b] mt-2 ${isUser ? 'text-right' : 'text-left'}`}>
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>

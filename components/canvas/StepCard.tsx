@@ -24,11 +24,11 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
   const addNotification = useIDEStore(state => state.addNotification);
 
   const statusColors = {
-    pending: 'bg-zinc-900/50 border-zinc-800/50',
-    'in-progress': 'bg-amber-950/20 border-amber-600/20',
-    completed: 'bg-emerald-950/20 border-emerald-600/20',
-    failed: 'bg-red-950/20 border-red-600/20',
-    skipped: 'bg-zinc-900/30 border-zinc-800/30',
+    pending: 'surface-inset border-[#1f1f28]',
+    'in-progress': 'surface-card border-[#f59e0b]/30 shadow-[#f59e0b]/10',
+    completed: 'surface-card border-[#10b981]/30 shadow-[#10b981]/10',
+    failed: 'surface-card border-[#ef4444]/30 shadow-[#ef4444]/10',
+    skipped: 'surface-inset border-[#1f1f28] opacity-60',
   };
 
   const handleApply = () => {
@@ -59,35 +59,35 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
 
   return (
     <div 
-      className={`rounded-lg border ${statusColors[step.status]} transition-all duration-200`}
+      className={`rounded-xl border ${statusColors[step.status]} smooth-transition`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      <div className="flex items-start gap-2 p-2.5">
-        <div className="flex-shrink-0 w-5 h-5 rounded bg-zinc-900/50 border border-zinc-800/50 flex items-center justify-center mt-0.5">
-          <span className="text-[9px] font-medium text-zinc-500">{stepNumber}</span>
+      <div className="flex items-start gap-3 p-3">
+        <div className="flex-shrink-0 w-6 h-6 rounded-lg surface-inset border border-[#28283a] flex items-center justify-center mt-0.5">
+          <span className="text-[10px] font-bold text-[#64748b]">{stepNumber}</span>
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h5 className="text-xs font-medium text-zinc-300">{step.label}</h5>
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h5 className="text-xs font-semibold text-[#e2e8f0]">{step.label}</h5>
               <StepTypeIcon type={step.type} />
             </div>
-            <StatusIcon status={step.status} className="w-3.5 h-3.5" />
+            <StatusIcon status={step.status} className="w-4 h-4" />
           </div>
 
           {step.description && (
-            <p className="text-[10px] text-zinc-500 mb-1.5">{step.description}</p>
+            <p className="text-xs text-[#94a3b8] mb-2">{step.description}</p>
           )}
 
           {step.files && step.files.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-1.5">
+            <div className="flex flex-wrap gap-1.5 mb-2">
               {step.files.map((file, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentFilePath(file)}
-                  className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 border border-zinc-800/50 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700 transition-colors font-mono"
+                  className="text-[10px] px-2 py-1 rounded-md surface-inset border border-[#28283a] text-[#94a3b8] hover:text-[#e2e8f0] hover:border-[#3b82f6]/50 smooth-transition font-mono"
                 >
                   {file}
                 </button>
@@ -96,7 +96,7 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
           )}
 
           {step.expanded && step.codeChanges && step.codeChanges.length > 0 && (
-            <div className="mt-2 space-y-1.5">
+            <div className="mt-3 space-y-2 animate-slide-in">
               {step.codeChanges.map((change) => (
                 <CodeChangePreview key={change.id} change={change} />
               ))}
@@ -104,45 +104,45 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
           )}
 
           {(showActions || step.status === 'in-progress') && step.status !== 'completed' && (
-            <div className="flex items-center gap-1.5 mt-2 animate-in fade-in">
+            <div className="flex items-center gap-2 mt-3 animate-slide-in">
               <button
                 onClick={handleApply}
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-medium transition-colors"
+                className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#10b981] to-[#059669] text-white text-xs font-medium shadow-[#10b981]/20"
               >
-                <Play className="w-2.5 h-2.5" />
+                <Play className="w-3 h-3" />
                 Apply
               </button>
 
               {step.codeChanges && step.codeChanges.length > 0 && (
                 <button
                   onClick={() => toggleStepExpansion(step.id)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[10px] font-medium transition-colors"
+                  className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#18181f] hover:bg-[#1a1a22] text-[#94a3b8] text-xs font-medium border border-[#28283a]"
                 >
-                  <Eye className="w-2.5 h-2.5" />
+                  <Eye className="w-3 h-3" />
                   {step.expanded ? 'Hide' : 'Preview'}
                 </button>
               )}
 
               <button
                 onClick={() => updateStepStatus(step.id, 'skipped')}
-                className="flex items-center gap-1 px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-400 text-[10px] font-medium transition-colors"
+                className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#18181f] hover:bg-[#1a1a22] text-[#64748b] text-xs font-medium border border-[#28283a]"
               >
-                <SkipForward className="w-2.5 h-2.5" />
+                <SkipForward className="w-3 h-3" />
                 Skip
               </button>
             </div>
           )}
 
           {step.status === 'completed' && step.completedAt && (
-            <div className="flex items-center gap-1 mt-1.5 text-[9px] text-emerald-600">
-              <StatusIcon status="completed" className="w-2.5 h-2.5" />
+            <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[#10b981]">
+              <StatusIcon status="completed" className="w-3 h-3" />
               <span>Completed {step.completedAt.toLocaleTimeString()}</span>
             </div>
           )}
 
           {step.status === 'failed' && step.error && (
-            <div className="flex items-center gap-1 mt-1.5 text-[9px] text-red-500">
-              <StatusIcon status="failed" className="w-2.5 h-2.5" />
+            <div className="flex items-center gap-1.5 mt-2 text-[10px] text-[#ef4444]">
+              <StatusIcon status="failed" className="w-3 h-3" />
               <span>{step.error}</span>
             </div>
           )}

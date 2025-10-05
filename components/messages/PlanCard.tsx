@@ -23,31 +23,31 @@ export function PlanCard({ plan }: PlanCardProps) {
   return (
     <button
       onClick={handleViewPlan}
-      className="mt-2 w-full glass-panel border border-zinc-800/50 rounded-lg p-3 hover:border-violet-600/30 hover:bg-violet-950/10 transition-all group text-left"
+      className="btn-3d mt-3 w-full surface-card rounded-xl p-4 hover:border-[#3b82f6]/30 group text-left border border-[#1f1f28]"
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
-            <Target className="w-3.5 h-3.5 text-white" />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center shadow-lg shadow-[#3b82f6]/20">
+            <Target className="w-4 h-4 text-white" />
           </div>
-          <span className="text-sm font-medium text-zinc-300">
+          <span className="text-sm font-semibold text-[#e2e8f0]">
             View Execution Plan
           </span>
         </div>
-        <ChevronDown className={`w-4 h-4 text-zinc-600 group-hover:text-violet-400 transition-colors ${canvas.isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-[#64748b] group-hover:text-[#3b82f6] smooth-transition ${canvas.isOpen ? 'rotate-180' : ''}`} />
       </div>
 
-      <div className="space-y-1.5">
-        <p className="text-xs text-zinc-500 line-clamp-1">{plan.title}</p>
+      <div className="space-y-2">
+        <p className="text-xs text-[#94a3b8] line-clamp-1">{plan.title}</p>
         
-        <div className="flex items-center gap-2">
-          <div className="flex-1 h-1 bg-zinc-900 rounded-full overflow-hidden">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-2 surface-inset rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-[#3b82f6] to-[#06b6d4] smooth-transition"
               style={{ width: `${plan.progress}%` }}
             />
           </div>
-          <span className="text-[10px] text-zinc-600">
+          <span className="text-[10px] text-[#64748b] font-mono">
             {plan.phases.length} phases • {plan.metadata?.totalSteps || 0} steps
           </span>
         </div>

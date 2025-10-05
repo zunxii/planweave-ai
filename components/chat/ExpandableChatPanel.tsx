@@ -17,22 +17,26 @@ export function ExpandableChatPanel({ onSendMessage }: ExpandableChatPanelProps)
   const toggleCanvas = useIDEStore(state => state.toggleCanvas);
   const activePlan = useIDEStore(state => state.getActivePlan());
 
-  const panelWidth = canvas.isOpen ? '45%' : '480px';
-  const minWidth = canvas.isOpen ? '700px' : '480px';
-  const maxWidth = canvas.isOpen ? '55%' : '480px';
+  const panelWidth = canvas.isOpen ? '45%' : '400px';
+  const minWidth = canvas.isOpen ? '700px' : '400px';
+  const maxWidth = canvas.isOpen ? '55%' : '400px';
 
   return (
     <div 
-      className="flex-shrink-0 glass-panel border-r flex flex-col transition-all duration-300 ease-out"
+      className="flex-shrink-0 surface-panel border-r flex flex-col smooth-transition"
       style={{ width: panelWidth, minWidth, maxWidth }}
     >
       {canvas.isOpen && activePlan && (
-        <div className="border-b border-zinc-800/50 animate-in slide-in-from-top duration-300" style={{ height: '55%' }}>
+        <div 
+          className="border-b border-[#1f1f28] animate-slide-in overflow-hidden relative" 
+          style={{ height: '55%' }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-8 gradient-overlay-top pointer-events-none z-10" />
           <CanvasContent plan={activePlan} />
         </div>
       )}
 
-      <div className={`flex flex-col transition-all duration-300 ${canvas.isOpen ? 'h-[45%]' : 'h-full'}`}>
+      <div className={`flex flex-col smooth-transition ${canvas.isOpen ? 'h-[45%]' : 'h-full'}`}>
         <ChatHeader 
           showCanvas={canvas.isOpen}
           onToggleCanvas={toggleCanvas}

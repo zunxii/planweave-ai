@@ -7,18 +7,45 @@ interface StepTypeIconProps {
 }
 
 export function StepTypeIcon({ type }: StepTypeIconProps) {
-  const typeIcons = {
-    code: <Code className="w-3 h-3" />,
-    file: <FileCode className="w-3 h-3" />,
-    command: <Zap className="w-3 h-3" />,
-    review: <Eye className="w-3 h-3" />,
-    test: <TrendingUp className="w-3 h-3" />,
+  const typeConfig = {
+    code: { 
+      icon: <Code className="w-3 h-3" />,
+      bg: 'bg-[#3b82f6]/10',
+      border: 'border-[#3b82f6]/30',
+      text: 'text-[#3b82f6]'
+    },
+    file: { 
+      icon: <FileCode className="w-3 h-3" />,
+      bg: 'bg-[#10b981]/10',
+      border: 'border-[#10b981]/30',
+      text: 'text-[#10b981]'
+    },
+    command: { 
+      icon: <Zap className="w-3 h-3" />,
+      bg: 'bg-[#f59e0b]/10',
+      border: 'border-[#f59e0b]/30',
+      text: 'text-[#f59e0b]'
+    },
+    review: { 
+      icon: <Eye className="w-3 h-3" />,
+      bg: 'bg-[#94a3b8]/10',
+      border: 'border-[#94a3b8]/30',
+      text: 'text-[#94a3b8]'
+    },
+    test: { 
+      icon: <TrendingUp className="w-3 h-3" />,
+      bg: 'bg-[#06b6d4]/10',
+      border: 'border-[#06b6d4]/30',
+      text: 'text-[#06b6d4]'
+    },
   };
 
+  const config = typeConfig[type];
+
   return (
-    <div className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-zinc-900/50 border border-zinc-800/50">
-      {typeIcons[type]}
-      <span className="text-[9px] text-zinc-600 uppercase">{type}</span>
+    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${config.bg} border ${config.border}`}>
+      {config.icon}
+      <span className={`text-[9px] uppercase font-bold ${config.text}`}>{type}</span>
     </div>
   );
 }

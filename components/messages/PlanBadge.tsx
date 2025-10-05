@@ -1,12 +1,12 @@
 'use client';
 
-import { Zap } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 export function PlanBadge() {
   return (
-    <div className="inline-flex items-center gap-1.5 mb-2 text-xs border border-violet-600/30 bg-violet-950/20 text-violet-400 px-2.5 py-1 rounded-full">
-      <Zap className="w-3 h-3" />
-      Execution Plan Created
+    <div className="inline-flex items-center gap-2 mb-3 text-xs border border-[#3b82f6]/30 bg-[#3b82f6]/10 text-[#3b82f6] px-3 py-1.5 rounded-full font-medium shadow-sm shadow-[#3b82f6]/10">
+      <Sparkles className="w-3.5 h-3.5" />
+      Plan Generated
     </div>
   );
 }

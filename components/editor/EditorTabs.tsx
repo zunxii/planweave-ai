@@ -28,7 +28,7 @@ export function EditorTabs({
   onSave
 }: EditorTabsProps) {
   return (
-    <div className="h-14 glass-panel border-b flex items-center px-3 gap-2 overflow-x-auto relative">
+    <div className="h-[38px] vscode-elevated border-b border-[#3e3e42] flex items-center px-2 gap-1 overflow-x-auto relative">
       {files.map(file => (
         <FileTab
           key={file.path}
@@ -44,19 +44,19 @@ export function EditorTabs({
 
       <button
         onClick={onAddFile}
-        className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-400 hover:text-white hover:bg-zinc-900/40 rounded ml-2"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-[#858585] hover:text-[#cccccc] hover:bg-[#2d2d30] rounded smooth-transition ml-1"
       >
-        <Plus className="w-5 h-5" />
-        New File
+        <Plus className="w-4 h-4" />
+        New
       </button>
 
       {onSave && currentFilePath && (
         <button
           onClick={onSave}
           disabled={isSaving || !hasUnsaved}
-          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5 px-2.5 py-1.5 text-xs bg-[#007acc] hover:bg-[#0098ff] text-white rounded disabled:opacity-40 disabled:cursor-not-allowed smooth-transition"
         >
-          {isSaving ? 'Saving...' : <><Save className="w-4 h-4" /> Save</>}
+          {isSaving ? 'Saving...' : <><Save className="w-3.5 h-3.5" /> Save</>}
         </button>
       )}
     </div>

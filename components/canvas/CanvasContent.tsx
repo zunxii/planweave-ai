@@ -10,7 +10,7 @@ interface CanvasContentProps {
 
 export function CanvasContent({ plan }: CanvasContentProps) {
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-[#252526]">
       <CanvasHeader plan={plan} />
       
       <div className="flex-1 overflow-y-auto p-3 space-y-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, User } from 'lucide-react';
+import { Bot, User } from 'lucide-react';
 
 interface MessageAvatarProps {
   role: 'user' | 'assistant';
@@ -10,13 +10,15 @@ export function MessageAvatar({ role }: MessageAvatarProps) {
   const isUser = role === 'user';
   
   return (
-    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
-      isUser ? 'bg-zinc-800' : 'bg-gradient-to-br from-violet-600 to-indigo-600'
+    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+      isUser 
+        ? 'surface-card' 
+        : 'bg-gradient-to-br from-[#3b82f6] to-[#2563eb] shadow-lg shadow-[#3b82f6]/30'
     }`}>
       {isUser ? (
-        <User className="w-3.5 h-3.5 text-zinc-400" />
+        <User className="w-4 h-4 text-[#94a3b8]" />
       ) : (
-        <Sparkles className="w-3.5 h-3.5 text-white" />
+        <Bot className="w-4 h-4 text-white" />
       )}
     </div>
   );

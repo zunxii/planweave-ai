@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, ChevronUp, ChevronDown } from 'lucide-react';
+import { Bot, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface ChatHeaderProps {
   showCanvas: boolean;
@@ -10,36 +10,33 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ showCanvas, onToggleCanvas, hasActivePlan }: ChatHeaderProps) {
   return (
-    <div className="p-4 border-b border-zinc-800/50">
+    <div className="px-4 py-4 border-b border-[#1f1f28] surface-elevated">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-zinc-400" />
-          </div>
+        <div className="flex items-center gap-3">
           <div>
-            <h2 className="text-sm font-medium text-zinc-200">Planning Assistant</h2>
-            <p className="text-xs text-zinc-600">Let's plan before we code</p>
+            <h2 className="text-sm font-semibold text-[#f8fafc]">AI Assistant</h2>
+            <p className="text-xs text-[#64748b]">Plan first, code better</p>
           </div>
         </div>
 
         {hasActivePlan && (
           <button
             onClick={onToggleCanvas}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all text-xs font-medium ${
+            className={`btn-3d flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
               showCanvas 
-                ? 'bg-violet-600 text-white hover:bg-violet-500' 
-                : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200'
+                ? 'bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white accent-glow' 
+                : 'bg-[#18181f] hover:bg-[#1a1a22] text-[#94a3b8] border border-[#28283a]'
             }`}
           >
             {showCanvas ? (
               <>
-                <ChevronUp className="w-3.5 h-3.5" />
-                Hide Canvas
+                <ChevronUp className="w-4 h-4" />
+                Hide Plan
               </>
             ) : (
               <>
-                <ChevronDown className="w-3.5 h-3.5" />
-                Show Canvas
+                <ChevronDown className="w-4 h-4" />
+                Show Plan
               </>
             )}
           </button>

@@ -11,14 +11,14 @@ export function ProgressBar({
   showLabel = true,
   variant = 'default' 
 }: ProgressBarProps) {
-  const getColorClass = () => {
+  const getGradientClass = () => {
     switch (variant) {
       case 'phase':
-        return 'from-violet-600 to-indigo-600';
+        return 'bg-gradient-to-r from-[#3b82f6] to-[#06b6d4]';
       case 'step':
-        return 'from-emerald-500 to-emerald-600';
+        return 'bg-gradient-to-r from-[#10b981] to-[#059669]';
       default:
-        return 'from-violet-600 to-indigo-600';
+        return 'bg-gradient-to-r from-[#3b82f6] to-[#06b6d4]';
     }
   };
 
@@ -26,16 +26,18 @@ export function ProgressBar({
     <div className="space-y-2">
       {showLabel && (
         <div className="flex items-center justify-between text-xs">
-          <span className="text-zinc-500">Progress</span>
-          <span className="text-zinc-300 font-medium">{progress}%</span>
+          <span className="text-[#94a3b8] font-medium">Progress</span>
+          <span className="text-[#e2e8f0] font-semibold">{progress}%</span>
         </div>
       )}
       
-      <div className="h-1.5 bg-zinc-900 rounded-full overflow-hidden">
+      <div className="h-2 surface-inset rounded-full overflow-hidden relative">
         <div
-          className={`h-full bg-gradient-to-r ${getColorClass()} transition-all duration-500 ease-out`}
+          className={`h-full ${getGradientClass()} smooth-transition relative`}
           style={{ width: `${progress}%` }}
-        />
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
+        </div>
       </div>
     </div>
   );

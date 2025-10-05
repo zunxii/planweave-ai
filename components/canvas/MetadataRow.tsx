@@ -19,7 +19,7 @@ export function MetadataRow({ items }: MetadataRowProps) {
   };
 
   return (
-    <div className="flex items-center gap-3 text-[10px] text-zinc-600 pt-1">
+    <div className="flex items-center gap-3 text-[10px] text-[#858585] pt-2">
       {items.map((item, idx) => {
         const Icon = iconMap[item.icon];
         return (
