@@ -28,7 +28,6 @@ export function plannerToReactFlow(plan: PlannerResult): { nodes: RFNode[]; edge
     } as RFNode;
   });
 
-  // If edges provided, use them. Otherwise infer parent->child edges from children fields.
   const edges = (plan.edges && plan.edges.length > 0)
     ? plan.edges.map(e => ({ id: e.id, source: e.source, target: e.target, animated: !!e.animated }))
     : ([] as RFEdge[]);

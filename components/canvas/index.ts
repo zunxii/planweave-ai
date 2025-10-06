@@ -5,5 +5,4 @@ export { StepCard } from './StepCard';
 export { CodeChangePreview } from './CodeChangePreview';
 export { ProgressBar } from './ProgressBar';
 export { StatusIcon } from './StatusIcon';
-export { MetadataRow } from './MetadataRow';
 export { StepTypeIcon } from './StepTypeIcon';

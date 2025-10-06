@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRight, ChevronDown, Clock } from 'lucide-react';
+import { ChevronRight, ChevronDown, Clock, CheckCircle2 } from 'lucide-react';
 import { StatusIcon } from './StatusIcon';
 import { StepCard } from './StepCard';
 import { useIDEStore } from '@/store';
@@ -13,6 +13,8 @@ interface PhaseCardProps {
 
 export function PhaseCard({ phase, phaseNumber }: PhaseCardProps) {
   const togglePhaseExpansion = useIDEStore(state => state.togglePhaseExpansion);
+  const updateStepStatus = useIDEStore(state => state.updateStepStatus);
+  const addNotification = useIDEStore(state => state.addNotification);
 
   const statusColors = {
     pending: 'border-[#1f1f28] bg-[#14141a]',
@@ -21,9 +23,32 @@ export function PhaseCard({ phase, phaseNumber }: PhaseCardProps) {
     failed: 'border-[#ef4444]/30 bg-[#1a1418]',
   };
 
-  const completedSteps = phase.steps.filter(s => s.status === 'completed').length;
+  const completedSteps = phase.steps.filter(s => s.status === 'completed' || s.status === 'approved').length;
   const totalSteps = phase.steps.length;
   const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+  const allPending = phase.steps.every(s => s.status === 'pending' || s.status === 'in-progress');
+  const hasSteps = phase.steps.length > 0;
+
+  const handleApproveAll = () => {
+    let approvedCount = 0;
+    phase.steps.forEach(step => {
+      if (step.status === 'pending' || step.status === 'in-progress') {
+        updateStepStatus(step.id, 'approved');
+        approvedCount++;
+      }
+    });
+
+    if (approvedCount > 0) {
+      addNotification({
+        type: 'success',
+        title: 'Phase Approved',
+        message: `Approved ${approvedCount} step${approvedCount > 1 ? 's' : ''} in ${phase.label}`,
+        autoHide: true,
+        duration: 2500
+      });
+    }
+  };
 
   return (
     <div className={`surface-card ${statusColors[phase.status]} smooth-transition rounded-lg overflow-hidden`}>
@@ -80,6 +105,22 @@ export function PhaseCard({ phase, phaseNumber }: PhaseCardProps) {
 
       {phase.expanded && (
         <div className="border-t border-[#1f1f28] p-2 space-y-1.5 animate-slide-in bg-[#0f0f14]/50">
+          {/* Approve All Button - Only show if phase has steps and some are pending */}
+          {hasSteps && allPending && (
+            <div className="mb-2 flex justify-end">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApproveAll();
+                }}
+                className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#10b981] to-[#059669] text-white text-xs font-medium shadow-[#10b981]/20"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Approve All Steps
+              </button>
+            </div>
+          )}
+
           {phase.steps.map((step, index) => (
             <StepCard
               key={step.id}

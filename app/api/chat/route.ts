@@ -16,7 +16,6 @@ export async function POST(req: Request) {
     console.log(' Incoming message:', message.substring(0, 100), 'Session:', sessionId);
     console.log(' Files context:', files?.length || 0, 'files');
 
-    // Enhanced RAG with plan generation
     const result = await runRag(sessionId, message, files || []);
 
     console.log(' Generated reply:', result.reply.substring(0, 100) + '...');

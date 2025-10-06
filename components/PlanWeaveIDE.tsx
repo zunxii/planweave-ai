@@ -1,41 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { nanoid } from 'nanoid';
 import { useIDEStore } from '@/store';
-import { useChat } from '@/hooks/useChat';
 import { syncStore } from '@/services/langchain/syncStore';
 import { CodeEditor } from './editor';
 import { ExpandableChatPanel } from './chat';
 import { IDELayout } from './layout';
 import { NotificationToast } from './notifications';
-
-function FinalPlanModal() {
-  const isOpen = useIDEStore(state => state.isFinalPlanModalOpen);
-  const doc = useIDEStore(state => state.finalPlanDoc);
-  const setOpen = useIDEStore(state => state.setFinalPlanModalOpen);
-
-  const copy = async () => {
-    if (doc) await navigator.clipboard.writeText(doc);
-  };
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
-      <div className="w-[90vw] h-[85vh] surface-panel border border-[#1f1f28] rounded-xl overflow-hidden shadow-xl">
-        <div className="flex items-center justify-between p-3 border-b border-[#1f1f28]">
-          <div className="text-sm font-semibold text-[#e2e8f0]">Final Plan Document</div>
-          <div className="flex items-center gap-2">
-            <button onClick={copy} className="btn-3d px-3 py-1.5 text-xs rounded-md bg-[#18181f] hover:bg-[#1a1a22] text-[#e2e8f0] border border-[#28283a]">Copy</button>
-            <button onClick={() => setOpen(false)} className="btn-3d px-3 py-1.5 text-xs rounded-md bg-[#0f0f14] hover:bg-[#101018] text-[#94a3b8] border border-[#1f2937]">Close</button>
-          </div>
-        </div>
-        <div className="h-full overflow-auto p-4 text-sm text-[#cbd5e1] whitespace-pre-wrap font-mono">
-          {doc}
-        </div>
-      </div>
-    </div>
-  );
-}
+import { FinalPlanModal } from './plan/FinalPlanModal';
+import { getSessionId } from '@/lib/session';
 
 export function PlanWeaveIDE() {
   const files = useIDEStore(state => state.files);
@@ -46,14 +20,18 @@ export function PlanWeaveIDE() {
   const renameFile = useIDEStore(state => state.renameFile);
   const addMessage = useIDEStore(state => state.addMessage);
   const setIsThinking = useIDEStore(state => state.setIsThinking);
+  const createPlan = useIDEStore(state => state.createPlan);
+  const setActivePlan = useIDEStore(state => state.setActivePlan);
+  const setCanvasOpen = useIDEStore(state => state.setCanvasOpen);
+  const addNotification = useIDEStore(state => state.addNotification);
 
-  const { sendMessage, sessionId } = useChat();
+  const sessionId = getSessionId();
 
   useEffect(() => {
     const init = async () => {
       if (sessionId) {
         await syncStore('clear');
-        console.log('Vector store initialized for session:', sessionId);
+        console.log(' Vector store initialized for session:', sessionId);
       }
     };
     init();
@@ -68,7 +46,13 @@ export function PlanWeaveIDE() {
     }
   }, [files, sessionId]);
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = useCallback(async (content: string) => {
+    if (!sessionId) {
+      console.error('Session not ready');
+      return;
+    }
+
+    // Add user message
     const userMessage = {
       id: nanoid(),
       role: 'user' as const,
@@ -77,18 +61,146 @@ export function PlanWeaveIDE() {
     };
     addMessage(userMessage);
 
-    setIsThinking(true);
-    const { reply } = await sendMessage(content);
-    setIsThinking(false);
-
-    const assistantMessage = {
-      id: nanoid(),
+    // Create streaming assistant message
+    const streamingMessageId = nanoid();
+    const streamingMessage = {
+      id: streamingMessageId,
       role: 'assistant' as const,
-      content: reply,
-      timestamp: new Date()
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+      status: 'Thinking...'
     };
-    addMessage(assistantMessage);
-  };
+    addMessage(streamingMessage);
+
+    setIsThinking(true);
+    
+    try {
+      const res = await fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sessionId, 
+          message: content,
+          files
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Stream request failed');
+      }
+
+      const reader = res.body?.getReader();
+      if (!reader) {
+        throw new Error('No response stream');
+      }
+
+      const decoder = new TextDecoder();
+      let fullReply = '';
+      let plan = null;
+      let shouldCreatePlan = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === 'status') {
+                // Update status in streaming message
+                useIDEStore.setState(state => ({
+                  messages: state.messages.map(m =>
+                    m.id === streamingMessageId 
+                      ? { ...m, status: data.message }
+                      : m
+                  )
+                }));
+              } else if (data.type === 'token') {
+                // Append token to message content
+                fullReply += data.content;
+                useIDEStore.setState(state => ({
+                  messages: state.messages.map(m =>
+                    m.id === streamingMessageId 
+                      ? { ...m, content: fullReply }
+                      : m
+                  )
+                }));
+              } else if (data.type === 'plan') {
+                plan = data.plan;
+                shouldCreatePlan = data.shouldCreatePlan;
+              } else if (data.type === 'done') {
+                console.log(' Stream completed');
+              } else if (data.type === 'error') {
+                console.error(' Stream error:', data.error);
+                throw new Error(data.error);
+              }
+            } catch (e) {
+              // Ignore parse errors for incomplete chunks
+            }
+          }
+        }
+      }
+
+      // Mark message as complete
+      useIDEStore.setState(state => ({
+        messages: state.messages.map(m =>
+          m.id === streamingMessageId 
+            ? { ...m, content: fullReply, isStreaming: false, status: undefined }
+            : m
+        )
+      }));
+
+      // Create plan if needed
+      if (shouldCreatePlan && plan) {
+        console.log(' Creating execution plan...');
+        
+        const planId = createPlan(plan);
+        setActivePlan(planId);
+        setCanvasOpen(true);
+        
+        addNotification({
+          type: 'success',
+          title: ' Plan Created',
+          message: 'Check the canvas to review your execution plan!',
+          autoHide: true,
+          duration: 4000,
+        });
+      }
+
+    } catch (err: any) {
+      console.error(' Streaming error:', err);
+      
+      // Update message with error
+      useIDEStore.setState(state => ({
+        messages: state.messages.map(m =>
+          m.id === streamingMessageId 
+            ? { 
+                ...m, 
+                content: 'Sorry, an error occurred. Please try again.',
+                isStreaming: false,
+                status: undefined
+              }
+            : m
+        )
+      }));
+
+      addNotification({
+        type: 'error',
+        title: 'Error',
+        message: 'Failed to get response. Please try again.',
+        autoHide: true,
+        duration: 3000
+      });
+    } finally {
+      setIsThinking(false);
+    }
+  }, [sessionId, files, addMessage, setIsThinking, createPlan, setActivePlan, setCanvasOpen, addNotification]);
 
   const handleAddFile = async () => {
     const fileName = prompt('Enter file name (e.g., components/Button.tsx):');

@@ -10,6 +10,8 @@ export interface Message {
   type?: 'text' | 'plan' | 'code' | 'mixed';
   plan?: ExecutionPlan;
   codeBlocks?: CodeBlock[];
+  isStreaming?: boolean;  
+  status?: string;        
 }
 
 export interface ChatState {
