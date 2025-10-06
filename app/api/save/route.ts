@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { indexFiles } from '@/services/ai/retriever';
-import type { FileItem } from '@/types/planweave';
+import type { FileItem } from '@/types';
 
 export async function POST(req: Request) {
   try {

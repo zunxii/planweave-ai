@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { indexFiles, clearVectorStore } from '@/services/ai/retriever';
-import type { FileItem } from '@/types/planweave';
+import type { FileItem } from '@/types';
 
 export async function POST(req: NextRequest) {
   try {
