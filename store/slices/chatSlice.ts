@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Message, PlanNode } from '@/types/planweave';
+import type { Message, PlanNode } from '@/types';
 
 export interface ChatSlice {
   messages: Message[];

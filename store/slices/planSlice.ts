@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { ExecutionPlan, PlanPhase, PlanStep } from '@/types/planweave';
+import type { ExecutionPlan, PlanPhase, PlanStep } from '@/types';
 
 export interface PlanSlice {
   executionPlans: ExecutionPlan[];

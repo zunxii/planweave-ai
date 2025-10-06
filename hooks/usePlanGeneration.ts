@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { PlanNode, Message } from '@/types/planweave';
+import type { PlanNode, Message } from '@/types';
 
 export function usePlanGeneration() {
   const [isGenerating, setIsGenerating] = useState(false);

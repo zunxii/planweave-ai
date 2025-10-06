@@ -1,6 +1,6 @@
 import { GoogleGenerativeAIEmbeddings } from '@langchain/google-genai';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
-import type { FileItem } from '@/types/planweave';
+import type { FileItem } from '@/types';
 
 // Session-based vector stores
 const vectorStores = new Map<string, MemoryVectorStore>();

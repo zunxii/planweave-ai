@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { Notification } from '@/types/planweave';
+import type { Notification } from '@/types';
 
 export interface NotificationSlice {
   notifications: Notification[];

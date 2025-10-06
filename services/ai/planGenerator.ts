@@ -1,7 +1,7 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { PLAN_GENERATION_PROMPT } from '../langchain/prompts/system';
 import { retrieveRelevant } from './retriever';
-import type { FileItem, ExecutionPlan, PlanPhase, PlanStep } from '@/types/planweave';
+import type { FileItem, ExecutionPlan, PlanPhase, PlanStep } from '@/types';
 
 export interface PlanGenerationContext {
   userQuery: string;

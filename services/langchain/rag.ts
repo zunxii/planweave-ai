@@ -2,7 +2,7 @@ import { getChainForSession } from './chainManager';
 import { SYSTEM_PROMPT } from './prompts/system';
 import { retrieveRelevant, indexFiles } from '@/services/ai/retriever';
 import { generateExecutionPlan } from '@/services/ai/planGenerator';
-import type { FileItem } from '@/types/planweave';
+import type { FileItem } from '@/types';
 
 export interface RAGResponse {
   reply: string;

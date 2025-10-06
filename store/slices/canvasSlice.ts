@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { CanvasState, CanvasView } from '@/types/planweave';
+import type { CanvasState, CanvasView } from '@/types';
 
 export interface CanvasSlice {
   canvas: CanvasState;

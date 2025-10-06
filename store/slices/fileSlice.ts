@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import type { FileItem } from '@/types/planweave';
+import type { FileItem } from '@/types';
 
 export interface FileSlice {
   files: FileItem[];

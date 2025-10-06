@@ -1,4 +1,4 @@
-import type { ExecutionPlan, PlanPhase, PlanStep } from '@/types/planweave';
+import type { ExecutionPlan, PlanPhase, PlanStep } from '@/types';
 
 /**
  * Detects if a user message is requesting a plan
