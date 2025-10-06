@@ -4,6 +4,8 @@ import type { ExecutionPlan, PlanPhase, PlanStep } from '@/types';
 export interface PlanSlice {
   executionPlans: ExecutionPlan[];
   activePlanId: string | null;
+  finalPlanDoc: string | null;
+  isFinalPlanModalOpen: boolean;
   
   createPlan: (plan: Omit<ExecutionPlan, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updatePlan: (planId: string, updates: Partial<ExecutionPlan>) => void;
@@ -11,6 +13,11 @@ export interface PlanSlice {
   setActivePlan: (planId: string | null) => void;
   getActivePlan: () => ExecutionPlan | null;
   calculatePlanProgress: (planId: string) => number;
+  finalizeActivePlan: () => void;
+  getApprovedFinalPlan: () => ExecutionPlan | null;
+  canFinalize: () => boolean;
+  setFinalPlanDoc: (doc: string | null) => void;
+  setFinalPlanModalOpen: (open: boolean) => void;
   
   togglePhaseExpansion: (phaseId: string) => void;
   updatePhase: (phaseId: string, updates: Partial<PlanPhase>) => void;
@@ -23,6 +30,8 @@ export interface PlanSlice {
 export const createPlanSlice: StateCreator<PlanSlice> = (set, get) => ({
   executionPlans: [],
   activePlanId: null,
+  finalPlanDoc: null,
+  isFinalPlanModalOpen: false,
 
   createPlan: (planData) => {
     const id = `plan-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -67,6 +76,33 @@ export const createPlanSlice: StateCreator<PlanSlice> = (set, get) => ({
     const { activePlanId, executionPlans } = get();
     return executionPlans.find(p => p.id === activePlanId) || null;
   },
+
+  finalizeActivePlan: () => {
+    const plan = get().getActivePlan();
+    if (!plan) return;
+    get().updatePlan(plan.id, { status: 'finalized' });
+  },
+
+  getApprovedFinalPlan: () => {
+    const plan = get().getActivePlan();
+    if (!plan) return null;
+    const approvedPhases = plan.phases.map(phase => ({
+      ...phase,
+      steps: phase.steps.filter(step => step.status === 'approved')
+    }));
+    return { ...plan, phases: approvedPhases } as ExecutionPlan;
+  },
+
+  canFinalize: () => {
+    const plan = get().getActivePlan();
+    if (!plan) return false;
+    const allSteps = plan.phases.flatMap(p => p.steps);
+    if (allSteps.length === 0) return false;
+    return allSteps.every(s => s.status === 'approved' || s.status === 'skipped');
+  },
+
+  setFinalPlanDoc: (doc) => set({ finalPlanDoc: doc }),
+  setFinalPlanModalOpen: (open) => set({ isFinalPlanModalOpen: open }),
 
   togglePhaseExpansion: (phaseId) => {
     const phase = get().executionPlans
@@ -133,7 +169,7 @@ export const createPlanSlice: StateCreator<PlanSlice> = (set, get) => ({
     if (allSteps.length === 0) return 0;
 
     const completedSteps = allSteps.filter(
-      step => step.status === 'completed' || step.status === 'skipped'
+      step => step.status === 'approved' || step.status === 'skipped'
     ).length;
 
     return Math.round((completedSteps / allSteps.length) * 100);

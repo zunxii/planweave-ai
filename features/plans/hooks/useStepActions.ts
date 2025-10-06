@@ -5,33 +5,18 @@ export function useStepActions() {
   const toggleStepExpansion = useIDEStore(state => state.toggleStepExpansion);
   const updateStep = useIDEStore(state => state.updateStep);
   const updateStepStatus = useIDEStore(state => state.updateStepStatus);
-  const addFile = useIDEStore(state => state.addFile);
-  const updateFileContent = useIDEStore(state => state.updateFileContent);
   const addNotification = useIDEStore(state => state.addNotification);
+  const getActivePlan = useIDEStore(state => state.getActivePlan);
+  const updatePlan = useIDEStore(state => state.updatePlan);
 
-  const applyStep = (step: PlanStep) => {
-    if (!step.codeChanges || step.codeChanges.length === 0) return;
-
-    step.codeChanges.forEach(change => {
-      if (change.changeType === 'create' && change.content) {
-        addFile({
-          name: change.file.split('/').pop() || change.file,
-          path: change.file,
-          content: change.content,
-          language: change.language
-        });
-      } else if (change.changeType === 'modify' && change.after) {
-        updateFileContent(change.file, change.after);
-      }
-    });
-
-    updateStepStatus(step.id, 'completed');
+  const approveStep = (step: PlanStep) => {
+    updateStepStatus(step.id, 'approved');
     addNotification({
       type: 'success',
-      title: 'Changes Applied',
-      message: `Applied changes for: ${step.label}`,
+      title: 'Step Approved',
+      message: `Approved: ${step.label}`,
       autoHide: true,
-      duration: 3000
+      duration: 2000
     });
   };
 
@@ -43,11 +28,47 @@ export function useStepActions() {
     updateStepStatus(stepId, 'pending');
   };
 
+  const editStep = async (step: PlanStep, instruction: string) => {
+    try {
+      const plan = getActivePlan();
+      if (!plan) return;
+      const res = await fetch('/api/plan/editStep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId: plan.id, stepId: step.id, instruction })
+      });
+      if (!res.ok) throw new Error('Failed to edit step');
+      const data = await res.json();
+
+      // Update the target step with returned fields
+      updateStep(step.id, data.step);
+      // Optionally update plan metadata
+      updatePlan(plan.id, data.planUpdates || {});
+
+      addNotification({
+        type: 'success',
+        title: 'Step Updated',
+        message: `Edited: ${step.label}`,
+        autoHide: true,
+        duration: 2000
+      });
+    } catch (e) {
+      addNotification({
+        type: 'error',
+        title: 'Edit Failed',
+        message: 'Could not update the step. Please try again.',
+        autoHide: true,
+        duration: 3000
+      });
+    }
+  };
+
   return {
     toggleStepExpansion,
     updateStep,
     updateStepStatus,
-    applyStep,
+    approveStep,
+    editStep,
     skipStep,
     retryStep,
   };

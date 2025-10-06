@@ -10,6 +10,33 @@ import { ExpandableChatPanel } from './chat';
 import { IDELayout } from './layout';
 import { NotificationToast } from './notifications';
 
+function FinalPlanModal() {
+  const isOpen = useIDEStore(state => state.isFinalPlanModalOpen);
+  const doc = useIDEStore(state => state.finalPlanDoc);
+  const setOpen = useIDEStore(state => state.setFinalPlanModalOpen);
+
+  const copy = async () => {
+    if (doc) await navigator.clipboard.writeText(doc);
+  };
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center">
+      <div className="w-[90vw] h-[85vh] surface-panel border border-[#1f1f28] rounded-xl overflow-hidden shadow-xl">
+        <div className="flex items-center justify-between p-3 border-b border-[#1f1f28]">
+          <div className="text-sm font-semibold text-[#e2e8f0]">Final Plan Document</div>
+          <div className="flex items-center gap-2">
+            <button onClick={copy} className="btn-3d px-3 py-1.5 text-xs rounded-md bg-[#18181f] hover:bg-[#1a1a22] text-[#e2e8f0] border border-[#28283a]">Copy</button>
+            <button onClick={() => setOpen(false)} className="btn-3d px-3 py-1.5 text-xs rounded-md bg-[#0f0f14] hover:bg-[#101018] text-[#94a3b8] border border-[#1f2937]">Close</button>
+          </div>
+        </div>
+        <div className="h-full overflow-auto p-4 text-sm text-[#cbd5e1] whitespace-pre-wrap font-mono">
+          {doc}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PlanWeaveIDE() {
   const files = useIDEStore(state => state.files);
   const setCurrentFilePath = useIDEStore(state => state.setCurrentFilePath);
@@ -106,6 +133,7 @@ export function PlanWeaveIDE() {
       </div>
 
       <NotificationToast />
+      <FinalPlanModal />
     </IDELayout>
   );
 }

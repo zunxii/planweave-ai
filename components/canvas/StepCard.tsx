@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, Eye, SkipForward } from 'lucide-react';
+import { ThumbsUp, Eye, SkipForward, Pencil } from 'lucide-react';
 import { StatusIcon } from './StatusIcon';
 import { StepTypeIcon } from './StepTypeIcon';
 import { CodeChangePreview } from './CodeChangePreview';
@@ -19,42 +19,34 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
   const toggleStepExpansion = useIDEStore(state => state.toggleStepExpansion);
   const updateStepStatus = useIDEStore(state => state.updateStepStatus);
   const setCurrentFilePath = useIDEStore(state => state.setCurrentFilePath);
-  const addFile = useIDEStore(state => state.addFile);
-  const updateFileContent = useIDEStore(state => state.updateFileContent);
   const addNotification = useIDEStore(state => state.addNotification);
+  const { editStep } = require('@/features/plans/hooks/useStepActions');
 
-  const statusColors = {
+  const statusColors: Record<NonNullable<PlanStep['status']>, string> = {
     pending: 'surface-inset border-[#1f1f28]',
     'in-progress': 'surface-card border-[#f59e0b]/30 shadow-[#f59e0b]/10',
+    approved: 'surface-card border-[#10b981]/30 shadow-[#10b981]/10',
     completed: 'surface-card border-[#10b981]/30 shadow-[#10b981]/10',
     failed: 'surface-card border-[#ef4444]/30 shadow-[#ef4444]/10',
     skipped: 'surface-inset border-[#1f1f28] opacity-60',
   };
 
-  const handleApply = () => {
-    if (!step.codeChanges || step.codeChanges.length === 0) return;
-
-    step.codeChanges.forEach(change => {
-      if (change.changeType === 'create' && change.content) {
-        addFile({
-          name: change.file.split('/').pop() || change.file,
-          path: change.file,
-          content: change.content,
-          language: change.language
-        });
-      } else if (change.changeType === 'modify' && change.after) {
-        updateFileContent(change.file, change.after);
-      }
-    });
-
-    updateStepStatus(step.id, 'completed');
+  const handleApprove = () => {
+    updateStepStatus(step.id, 'approved');
     addNotification({
       type: 'success',
-      title: 'Changes Applied',
-      message: `Applied changes for: ${step.label}`,
+      title: 'Step Approved',
+      message: `Approved: ${step.label}`,
       autoHide: true,
-      duration: 3000
+      duration: 2000
     });
+  };
+
+  const handleEdit = async () => {
+    const instruction = prompt('Describe the change to this step:');
+    if (!instruction) return;
+    const { editStep: doEdit } = require('@/features/plans/hooks/useStepActions');
+    await doEdit(step, instruction);
   };
 
   return (
@@ -106,11 +98,11 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
           {(showActions || step.status === 'in-progress') && step.status !== 'completed' && (
             <div className="flex items-center gap-2 mt-3 animate-slide-in">
               <button
-                onClick={handleApply}
+                onClick={handleApprove}
                 className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-b from-[#10b981] to-[#059669] text-white text-xs font-medium shadow-[#10b981]/20"
               >
-                <Play className="w-3 h-3" />
-                Apply
+                <ThumbsUp className="w-3 h-3" />
+                Approve
               </button>
 
               {step.codeChanges && step.codeChanges.length > 0 && (
@@ -122,6 +114,14 @@ export function StepCard({ step, stepNumber }: StepCardProps) {
                   {step.expanded ? 'Hide' : 'Preview'}
                 </button>
               )}
+
+              <button
+                onClick={handleEdit}
+                className="btn-3d flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#18181f] hover:bg-[#1a1a22] text-[#94a3b8] text-xs font-medium border border-[#28283a]"
+              >
+                <Pencil className="w-3 h-3" />
+                Edit
+              </button>
 
               <button
                 onClick={() => updateStepStatus(step.id, 'skipped')}

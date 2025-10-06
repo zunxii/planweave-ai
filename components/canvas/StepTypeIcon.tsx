@@ -40,12 +40,18 @@ export function StepTypeIcon({ type }: StepTypeIconProps) {
     },
   };
 
-  const config = typeConfig[type];
+  const defaultConfig = { 
+    icon: <Code className="w-3 h-3" />, 
+    bg: 'bg-[#3b82f6]/10', 
+    border: 'border-[#3b82f6]/30', 
+    text: 'text-[#3b82f6]'
+  };
+  const config = (type ? (typeConfig as any)[type] : undefined) || defaultConfig;
 
   return (
     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${config.bg} border ${config.border}`}>
       {config.icon}
-      <span className={`text-[9px] uppercase font-bold ${config.text}`}>{type}</span>
+      <span className={`text-[9px] uppercase font-bold ${config.text}`}>{type || 'code'}</span>
     </div>
   );
 }

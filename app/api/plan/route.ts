@@ -15,4 +15,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message || "failed" }, { status: 500 });
   }
 }
-// for production add request validation, rate-limits, session auth, and caching for repeated queries.
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { plan, instruction } = await req.json();
+    if (!plan || !instruction) return NextResponse.json({ error: 'plan and instruction are required' }, { status: 400 });
+    return NextResponse.json({ plan });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ error: err.message || 'failed' }, { status: 500 });
+  }
+}

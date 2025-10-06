@@ -1,7 +1,7 @@
 'use client';
 
 import { StatusIcon } from '@/components/canvas';
-import { FileCode, Clock, Play } from 'lucide-react';
+import { FileCode, Clock, ThumbsUp } from 'lucide-react';
 import type { PlanNode, FlowchartNodePosition } from '@/types';
 
 export { FlowchartNode as default };
@@ -99,7 +99,7 @@ export function FlowchartNode({
             
             {node.type === 'step' && node.status === 'pending' && (
               <button className="btn-3d p-1 rounded bg-[#10b981] hover:bg-[#059669]">
-                <Play className="w-3 h-3 text-white" />
+                <ThumbsUp className="w-3 h-3 text-white" />
               </button>
             )}
           </div>

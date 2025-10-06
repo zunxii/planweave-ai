@@ -1,6 +1,6 @@
 'use client';
 
-import { Circle, Loader2, CheckCircle2, AlertCircle, Pause, SkipForward } from 'lucide-react';
+import { Circle, Loader2, CheckCircle2, AlertCircle, Pause, SkipForward, ThumbsUp } from 'lucide-react';
 import type { PlanStatus, PhaseStatus, StepStatus } from '@/types';
 
 interface StatusIconProps {
@@ -14,6 +14,8 @@ export function StatusIcon({ status, className = 'w-4 h-4' }: StatusIconProps) {
     pending: { Icon: Circle, color: 'text-[#64748b]', animate: false },
     active: { Icon: Loader2, color: 'text-[#f59e0b]', animate: true },
     'in-progress': { Icon: Loader2, color: 'text-[#f59e0b]', animate: true },
+    approved: { Icon: ThumbsUp, color: 'text-[#10b981]', animate: false },
+    finalized: { Icon: CheckCircle2, color: 'text-[#3b82f6]', animate: false },
     completed: { Icon: CheckCircle2, color: 'text-[#10b981]', animate: false },
     failed: { Icon: AlertCircle, color: 'text-[#ef4444]', animate: false },
     paused: { Icon: Pause, color: 'text-[#94a3b8]', animate: false },

@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { FlowchartNode } from './FlowchartNode';
 import { FlowchartEdge } from './FlowchartEdge';
 import { FlowchartControls } from './FlowchartControls';
 import { useFlowchart } from '@/features/flowchart/hooks/useFlowchart';
-import type { ExecutionPlan, PlanNode, FlowchartNodePosition } from '@/types';
+import type { ExecutionPlan, PlanNode } from '@/types';
 
 interface FlowchartCanvasProps {
   plan: ExecutionPlan;
@@ -18,6 +18,45 @@ export function FlowchartCanvas({ plan }: FlowchartCanvasProps) {
   
   const { flowchart, nodes, positions, edges, actions } = useFlowchart(plan);
   const { viewport } = flowchart;
+
+  const horizontalPositions = new Map();
+  const NODE_WIDTH = 220;
+  const NODE_HEIGHT = 100;
+  const HORIZONTAL_GAP = 200;
+  const VERTICAL_GAP = 120;
+  const STEP_VERTICAL_OFFSET = 140;
+  
+  let currentX = 100;
+  let maxY = 0;
+
+  const startNode = nodes.find(n => n.type === 'start');
+  if (startNode) {
+    horizontalPositions.set(startNode.id, { x: currentX, y: 200 });
+    currentX += NODE_WIDTH + HORIZONTAL_GAP;
+  }
+
+  nodes.filter(n => n.type === 'phase').forEach((phaseNode, phaseIdx) => {
+    const phaseY = 200;
+    horizontalPositions.set(phaseNode.id, { x: currentX, y: phaseY });
+
+    const stepNodes = nodes.filter(n => 
+      n.type === 'step' && phaseNode.children?.includes(n.id)
+    );
+    
+    stepNodes.forEach((stepNode, stepIdx) => {
+      const stepY = phaseY + STEP_VERTICAL_OFFSET + (stepIdx * (NODE_HEIGHT + 20));
+      horizontalPositions.set(stepNode.id, { x: currentX, y: stepY });
+      maxY = Math.max(maxY, stepY + NODE_HEIGHT);
+    });
+
+    currentX += NODE_WIDTH + HORIZONTAL_GAP;
+  });
+
+  // End node
+  const endNode = nodes.find(n => n.type === 'end');
+  if (endNode) {
+    horizontalPositions.set(endNode.id, { x: currentX, y: 200 });
+  }
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button === 0 && e.target === canvasRef.current) {
@@ -73,6 +112,7 @@ export function FlowchartCanvas({ plan }: FlowchartCanvasProps) {
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
       >
+        {/* SVG for edges */}
         <svg
           className="absolute inset-0 w-full h-full pointer-events-none"
           style={{
@@ -83,28 +123,28 @@ export function FlowchartCanvas({ plan }: FlowchartCanvasProps) {
           <defs>
             <marker
               id="arrowhead"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
+              markerWidth="8"
+              markerHeight="8"
+              refX="7"
+              refY="2.5"
               orient="auto"
             >
               <polygon
-                points="0 0, 10 3, 0 6"
+                points="0 0, 8 2.5, 0 5"
                 fill="#3b82f6"
-                opacity="0.6"
+                opacity="0.5"
               />
             </marker>
             <marker
               id="arrowhead-active"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
+              markerWidth="8"
+              markerHeight="8"
+              refX="7"
+              refY="2.5"
               orient="auto"
             >
               <polygon
-                points="0 0, 10 3, 0 6"
+                points="0 0, 8 2.5, 0 5"
                 fill="#f59e0b"
               />
             </marker>
@@ -114,7 +154,7 @@ export function FlowchartCanvas({ plan }: FlowchartCanvasProps) {
             <FlowchartEdge
               key={edge.id}
               edge={edge}
-              sourcePos={positions.get(edge.source)}
+              sourcePos={horizontalPositions.get(edge.source)}
               targetPos={positions.get(edge.target)}
             />
           ))}
