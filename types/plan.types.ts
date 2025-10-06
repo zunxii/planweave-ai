@@ -76,5 +76,5 @@ export interface PlanNode {
   children?: string[];
   files?: string[];
   expanded?: boolean;
-  status?: 'pending' | 'in-progress' | 'completed'| 'failed' | 'skipped';
+  status?: 'pending' | 'in-progress' | 'completed'| 'failed' | 'skipped' | 'approved';
 }
