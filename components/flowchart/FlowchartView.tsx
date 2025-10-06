@@ -1,87 +1,89 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { ArrowDown } from 'lucide-react';
-import { StatusIcon } from '@/components/canvas';
-import type { PlanNode } from '@/types';
-import { JSX } from 'react';
+import { useState } from 'react';
+import { FlowchartCanvas } from './FlowchartCanvas';
+import { Layers, List } from 'lucide-react';
+import type { ExecutionPlan } from '@/types';
 
 interface FlowchartViewProps {
-  nodes: PlanNode[];
-  onToggleNode: (nodeId: string) => void;
+  plan: ExecutionPlan;
 }
 
-export function FlowchartView({ nodes, onToggleNode }: FlowchartViewProps) {
-  const renderConnector = () => (
-    <div className="flex justify-center my-2">
-      <ArrowDown className="w-4 h-4 text-zinc-800" />
-    </div>
-  );
+type ViewMode = 'canvas' | 'list';
 
-  const renderNode = (node: PlanNode): JSX.Element | null => {
-    if (node.type === 'start') return null;
-
-    const statusColors = {
-      pending: 'border-zinc-800 bg-zinc-950',
-      'in-progress': 'border-amber-900/50 bg-amber-950/20',
-      completed: 'border-emerald-900/50 bg-emerald-950/20'
-    };
-
-    return (
-      <div key={node.id} className="animate-in">
-        <div
-          className={`rounded-lg border p-3 cursor-pointer transition-all hover:border-zinc-700 ${
-            statusColors[node.status || 'pending']
-          }`}
-          onClick={() => onToggleNode(node.id)}
-        >
-          <div className="flex items-start gap-2">
-            <StatusIcon status={node.status || 'pending'} className="w-4 h-4 mt-0.5" />
-            
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-zinc-300">{node.label}</span>
-                {node.type === 'phase' && (
-                  <Badge variant="outline" className="text-xs border-zinc-800 bg-zinc-900/50 text-zinc-500">
-                    Phase
-                  </Badge>
-                )}
-              </div>
-              
-              {node.description && (
-                <p className="text-xs text-zinc-600">{node.description}</p>
-              )}
-
-              {node.files && node.files.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {node.files.map((file, i) => (
-                    <code key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-black/40 border border-zinc-800/50 text-zinc-600">
-                      {file}
-                    </code>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {node.expanded && node.children && node.children.length > 0 && (
-          <div className="ml-6 mt-2 space-y-2 border-l border-zinc-900 pl-4">
-            {node.children.map(childId => {
-              const childNode = nodes.find(n => n.id === childId);
-              return childNode ? renderNode(childNode) : null;
-            })}
-          </div>
-        )}
-
-        {!node.expanded && node.children && node.children.length > 0 && renderConnector()}
-      </div>
-    );
-  };
+export function FlowchartView({ plan }: FlowchartViewProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('canvas');
 
   return (
-    <div className="p-4 space-y-2">
-      {nodes.filter(n => n.type === 'phase').map(node => renderNode(node))}
+    <div className="flex flex-col h-full">
+      {/* View mode toggle */}
+      <div className="flex items-center gap-2 p-3 border-b border-[#1f1f28] surface-elevated">
+        <button
+          onClick={() => setViewMode('canvas')}
+          className={`btn-3d flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
+            viewMode === 'canvas'
+              ? 'bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white accent-glow'
+              : 'bg-[#18181f] hover:bg-[#1a1a22] text-[#94a3b8] border border-[#28283a]'
+          }`}
+        >
+          <Layers className="w-4 h-4" />
+          Canvas View
+        </button>
+        
+        <button
+          onClick={() => setViewMode('list')}
+          className={`btn-3d flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ${
+            viewMode === 'list'
+              ? 'bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white accent-glow'
+              : 'bg-[#18181f] hover:bg-[#1a1a22] text-[#94a3b8] border border-[#28283a]'
+          }`}
+        >
+          <List className="w-4 h-4" />
+          List View
+        </button>
+
+        <div className="ml-auto flex items-center gap-2">
+          <div className="text-xs text-[#64748b]">
+            {plan.phases.length} phases • {plan.phases.reduce((acc, p) => acc + p.steps.length, 0)} steps
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-hidden">
+        {viewMode === 'canvas' ? (
+          <FlowchartCanvas plan={plan} />
+        ) : (
+          <div className="h-full overflow-y-auto p-4">
+            {/* List view - reuse existing components */}
+            <div className="space-y-3">
+              {plan.phases.map((phase, index) => (
+                <div key={phase.id} className="surface-card rounded-xl p-4 border border-[#1f1f28]">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#2563eb] flex items-center justify-center">
+                      <span className="text-sm font-bold text-white">{index + 1}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#e2e8f0]">{phase.label}</h3>
+                      {phase.description && (
+                        <p className="text-xs text-[#94a3b8] mt-1">{phase.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="ml-11 space-y-2">
+                    {phase.steps.map((step, stepIndex) => (
+                      <div key={step.id} className="text-xs text-[#94a3b8] flex items-center gap-2">
+                        <span className="text-[#64748b]">{stepIndex + 1}.</span>
+                        <span>{step.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

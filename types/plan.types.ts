@@ -68,7 +68,7 @@ export interface CodeChange {
 
 export interface PlanNode {
   id: string;
-  type: 'start' | 'phase' | 'step';
+  type: 'start' | 'phase' | 'step' | 'end' ;
   label: string;
   description?: string;
   x: number;
@@ -76,5 +76,5 @@ export interface PlanNode {
   children?: string[];
   files?: string[];
   expanded?: boolean;
-  status?: 'pending' | 'in-progress' | 'completed';
+  status?: 'pending' | 'in-progress' | 'completed'| 'failed' | 'skipped';
 }

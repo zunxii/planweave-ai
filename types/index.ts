@@ -6,3 +6,4 @@ export * from './canvas.types';
 export * from './notification.types';
 export * from './context.types';
 export * from './actions.types';
+export * from './flowchart.types';

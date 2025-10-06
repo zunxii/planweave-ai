@@ -1,3 +1,6 @@
 export { FlowchartView } from './FlowchartView';
-export { MiniFlowchart } from './MiniFlowchart';
+export { FlowchartCanvas } from './FlowchartCanvas';
 export { FlowchartNode } from './FlowchartNode';
+export { FlowchartEdge } from './FlowchartEdge';
+export { FlowchartControls } from './FlowchartControls';
+export { MiniFlowchart } from './MiniFlowchart';
