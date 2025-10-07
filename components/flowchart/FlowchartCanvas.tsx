@@ -1,292 +1,288 @@
 'use client';
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import ReactFlow, {
+  Node,
+  Edge,
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  MarkerType,
+  Panel,
+} from 'reactflow';
+import 'reactflow/dist/style.css';
 import { FlowchartNode } from './FlowchartNode';
-import { FlowchartEdge } from './FlowchartEdge';
-import { FlowchartControls } from './FlowchartControls';
-import { useFlowchart } from '@/features/flowchart/hooks/useFlowchart';
-import { Maximize2, X } from 'lucide-react';
-import type { ExecutionPlan, PlanNode } from '@/types';
+import { Maximize2, Minimize2 } from 'lucide-react';
+import type { ExecutionPlan } from '@/types';
 
 interface FlowchartCanvasProps {
   plan: ExecutionPlan;
 }
 
+const nodeTypes = {
+  custom: FlowchartNode,
+};
+
 export function FlowchartCanvas({ plan }: FlowchartCanvasProps) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
-  const { flowchart, nodes, positions, edges, actions } = useFlowchart(plan);
-  const { viewport } = flowchart;
-
-  // Enhanced horizontal layout
-  const NODE_WIDTH = 280;
-  const NODE_HEIGHT = 140;
-  const HORIZONTAL_GAP = 300;
-  const VERTICAL_GAP = 80;
-  const STEP_OFFSET = 160;
-
-  const horizontalPositions = new Map();
-  let currentX = 150;
-  let maxY = 0;
-
-  // Start node
-  const startNode = nodes.find(n => n.type === 'start');
-  if (startNode) {
-    horizontalPositions.set(startNode.id, { x: currentX, y: 300 });
-    currentX += NODE_WIDTH + HORIZONTAL_GAP;
-  }
-
-  nodes.filter(n => n.type === 'phase').forEach((phaseNode, phaseIdx) => {
-    const phaseY = 300;
-    horizontalPositions.set(phaseNode.id, { x: currentX, y: phaseY });
-
-    const stepNodes = nodes.filter(n => 
-      n.type === 'step' && phaseNode.children?.includes(n.id)
-    );
+  // Convert plan to React Flow nodes
+  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
     
-    if (stepNodes.length > 0) {
-      const totalStepHeight = stepNodes.length * NODE_HEIGHT + (stepNodes.length - 1) * 40;
-      const startStepY = phaseY - totalStepHeight / 2 + NODE_HEIGHT + STEP_OFFSET;
+    let currentY = 0;
+    const horizontalSpacing = 400;
+    const verticalSpacing = 200;
+    const centerX = 400;
+    
+    // Start node
+    nodes.push({
+      id: 'start',
+      type: 'custom',
+      position: { x: centerX, y: currentY },
+      data: {
+        node: {
+          id: 'start',
+          type: 'start',
+          label: 'Start',
+          status: 'completed',
+          x: centerX,
+          y: currentY,
+        },
+      },
+    });
+    
+    currentY += verticalSpacing;
+    
+    // Process each phase
+    plan.phases.forEach((phase, phaseIndex) => {
+      const phaseId = phase.id;
+      const prevNodeId = phaseIndex === 0 ? 'start' : plan.phases[phaseIndex - 1].id;
       
-      stepNodes.forEach((stepNode, stepIdx) => {
-        const stepY = startStepY + (stepIdx * (NODE_HEIGHT + 40));
-        horizontalPositions.set(stepNode.id, { x: currentX, y: stepY });
-        maxY = Math.max(maxY, stepY + NODE_HEIGHT);
+      // Phase node
+      nodes.push({
+        id: phaseId,
+        type: 'custom',
+        position: { x: centerX, y: currentY },
+        data: {
+          node: {
+            id: phaseId,
+            type: 'phase',
+            label: phase.label,
+            description: phase.description,
+            status: phase.status,
+            children: phase.steps.map(s => s.id),
+            expanded: phase.expanded,
+            x: centerX,
+            y: currentY,
+          },
+        },
       });
-    }
-
-    currentX += NODE_WIDTH + HORIZONTAL_GAP;
-  });
-
-  // End node
-  const endNode = nodes.find(n => n.type === 'end');
-  if (endNode) {
-    horizontalPositions.set(endNode.id, { x: currentX, y: 300 });
-  }
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 0 && e.target === canvasRef.current) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - viewport.x, y: e.clientY - viewport.y });
-    }
-  }, [viewport]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) {
-      actions.setViewport({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
+      
+      // Edge from previous to current phase
+      edges.push({
+        id: `e-${prevNodeId}-${phaseId}`,
+        source: prevNodeId,
+        target: phaseId,
+        type: 'smoothstep',
+        animated: phase.status === 'in-progress',
+        style: {
+          stroke: phase.status === 'in-progress' ? '#f59e0b' : '#3b82f6',
+          strokeWidth: 2,
+        },
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          color: phase.status === 'in-progress' ? '#f59e0b' : '#3b82f6',
+        },
       });
-    }
-  }, [isPanning, panStart, actions]);
+      
+      currentY += verticalSpacing;
+      
+      // Steps for this phase
+      const stepCount = phase.steps.length;
+      if (stepCount > 0) {
+        const totalWidth = (stepCount - 1) * horizontalSpacing;
+        const startX = centerX - totalWidth / 2;
+        
+        phase.steps.forEach((step, stepIndex) => {
+          const stepX = startX + stepIndex * horizontalSpacing;
+          const stepId = step.id;
+          
+          nodes.push({
+            id: stepId,
+            type: 'custom',
+            position: { x: stepX, y: currentY },
+            data: {
+              node: {
+                id: stepId,
+                type: 'step',
+                label: step.label,
+                description: step.description,
+                status: step.status,
+                files: step.files,
+                x: stepX,
+                y: currentY,
+              },
+            },
+          });
+          
+          // Edge from phase to step
+          edges.push({
+            id: `e-${phaseId}-${stepId}`,
+            source: phaseId,
+            target: stepId,
+            type: 'smoothstep',
+            animated: step.status === 'in-progress',
+            style: {
+              stroke: step.status === 'in-progress' ? '#f59e0b' : '#64748b',
+              strokeWidth: 1.5,
+            },
+            markerEnd: {
+              type: MarkerType.ArrowClosed,
+              color: step.status === 'in-progress' ? '#f59e0b' : '#64748b',
+            },
+          });
+        });
+        
+        currentY += verticalSpacing;
+      }
+    });
+    
+    // End node
+    const lastPhaseId = plan.phases[plan.phases.length - 1]?.id || 'start';
+    nodes.push({
+      id: 'end',
+      type: 'custom',
+      position: { x: centerX, y: currentY },
+      data: {
+        node: {
+          id: 'end',
+          type: 'end',
+          label: 'Complete',
+          status: plan.status === 'completed' ? 'completed' : 'pending',
+          x: centerX,
+          y: currentY,
+        },
+      },
+    });
+    
+    edges.push({
+      id: `e-${lastPhaseId}-end`,
+      source: lastPhaseId,
+      target: 'end',
+      type: 'smoothstep',
+      style: {
+        stroke: '#3b82f6',
+        strokeWidth: 2,
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        color: '#3b82f6',
+      },
+    });
+    
+    return { nodes, edges };
+  }, [plan]);
 
-  const handleMouseUp = useCallback(() => {
-    setIsPanning(false);
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    const newZoom = Math.min(Math.max(viewport.zoom + delta, 0.3), 2.0);
-    actions.setViewport({ zoom: newZoom });
-  }, [actions, viewport.zoom]);
-
-  const handleNodeClick = useCallback((node: PlanNode) => {
-    actions.setSelectedNode(node.id);
-  }, [actions]);
+  const [nodes, , onNodesChange] = useNodesState(initialNodes);
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
-    if (!isFullscreen) {
-      // Reset viewport when entering fullscreen
-      actions.resetViewport();
-    }
   };
-
-  // Auto-fit on mount
-  useEffect(() => {
-    if (nodes.length > 0) {
-      setTimeout(() => actions.fitToView(), 100);
-    }
-  }, [nodes.length]);
 
   const containerClasses = isFullscreen
     ? 'fixed inset-0 z-50 bg-[#0a0a0f]'
-    : 'relative w-full h-full bg-[#0a0a0f]';
+    : 'w-full h-full bg-[#0a0a0f]';
 
   return (
     <div className={containerClasses}>
-      {/* Fullscreen toggle button */}
-      <button
-        onClick={toggleFullscreen}
-        className="absolute top-4 left-4 z-20 btn-3d flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white text-sm font-medium accent-glow"
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        fitView
+        fitViewOptions={{
+          padding: 0.2,
+          includeHiddenNodes: false,
+        }}
+        minZoom={0.3}
+        maxZoom={2}
+        defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+        proOptions={{ hideAttribution: true }}
       >
-        {isFullscreen ? (
-          <>
-            <X className="w-4 h-4" />
-            Exit Fullscreen
-          </>
-        ) : (
-          <>
-            <Maximize2 className="w-4 h-4" />
-            Fullscreen View
-          </>
-        )}
-      </button>
+        <Background
+          color="#1f1f28"
+          gap={20}
+          size={1}
+          className="opacity-30"
+        />
+        
+        <Controls
+          className="!bg-[#18181f] !border-[#1f1f28] [&_button]:!bg-[#18181f] [&_button]:!border-[#28283a] [&_button]:!text-[#94a3b8] hover:[&_button]:!bg-[#1a1a22]"
+          showInteractive={false}
+        />
+        
+        <MiniMap
+          className="!bg-[#0f0f14] !border-[#1f1f28]"
+          nodeColor={(node) => {
+            if (node.data.node.type === 'start') return '#10b981';
+            if (node.data.node.type === 'end') return '#6366f1';
+            if (node.data.node.type === 'phase') return '#3b82f6';
+            return '#18181f';
+          }}
+          maskColor="rgba(10, 10, 15, 0.6)"
+        />
 
-      {/* Plan Title in fullscreen */}
-      {isFullscreen && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+        <Panel position="top-left" className="!m-4">
           <div className="surface-card rounded-lg px-4 py-2 border border-[#1f1f28]">
             <h3 className="text-sm font-semibold text-[#f8fafc]">{plan.title}</h3>
             <p className="text-xs text-[#64748b]">
               {plan.phases.length} phases • {plan.phases.reduce((sum, p) => sum + p.steps.length, 0)} steps
             </p>
           </div>
-        </div>
-      )}
+        </Panel>
 
-      <FlowchartControls
-        zoom={viewport.zoom}
-        onZoomIn={actions.zoomIn}
-        onZoomOut={actions.zoomOut}
-        onFitToView={actions.fitToView}
-        onResetViewport={actions.resetViewport}
-        onToggleFullscreen={toggleFullscreen}
-        isFullscreen={isFullscreen}
-      />
+        <Panel position="top-right" className="!m-4 flex flex-col gap-2">
+          {/* Fullscreen Toggle Button */}
+          <button
+            onClick={toggleFullscreen}
+            className="btn-3d flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-b from-[#3b82f6] to-[#2563eb] text-white text-sm font-medium accent-glow surface-card border border-[#1f1f28]"
+            title={isFullscreen ? "Exit Fullscreen" : "Fullscreen View"}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-4 h-4" />
+                Exit Fullscreen
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-4 h-4" />
+                Fullscreen View
+              </>
+            )}
+          </button>
 
-      <div
-        ref={canvasRef}
-        className={`w-full h-full overflow-hidden ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onWheel={handleWheel}
-      >
-        {/* Grid background */}
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{
-            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-            transformOrigin: '0 0',
-          }}
-        >
-          <defs>
-            <pattern
-              id="grid"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke="#1f1f28"
-                strokeWidth="0.5"
-              />
-            </pattern>
-            <marker
-              id="arrowhead"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 10 3, 0 6"
-                fill="#3b82f6"
-                opacity="0.6"
-              />
-            </marker>
-            <marker
-              id="arrowhead-active"
-              markerWidth="10"
-              markerHeight="10"
-              refX="9"
-              refY="3"
-              orient="auto"
-            >
-              <polygon
-                points="0 0, 10 3, 0 6"
-                fill="#f59e0b"
-              />
-            </marker>
-          </defs>
-
-          <rect width="100%" height="100%" fill="url(#grid)" opacity="0.3" />
-
-          {/* Edges */}
-          {edges.map((edge) => (
-            <FlowchartEdge
-              key={edge.id}
-              edge={edge}
-              sourcePos={horizontalPositions.get(edge.source)}
-              targetPos={horizontalPositions.get(edge.target)}
-            />
-          ))}
-        </svg>
-
-        {/* Nodes */}
-        <div
-          className="absolute"
-          style={{
-            transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
-            transformOrigin: '0 0',
-          }}
-        >
-          {nodes.map((node) => {
-            const position = horizontalPositions.get(node.id);
-            if (!position) return null;
-
-            return (
-              <FlowchartNode
-                key={node.id}
-                node={node}
-                position={position}
-                isSelected={flowchart.selectedNodeId === node.id}
-                isHovered={flowchart.hoveredNodeId === node.id}
-                onClick={handleNodeClick}
-                onMouseEnter={() => actions.setHoveredNode(node.id)}
-                onMouseLeave={() => actions.setHoveredNode(null)}
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Mini-map in fullscreen */}
-      {isFullscreen && (
-        <div className="absolute bottom-4 right-4 w-64 h-40 surface-card rounded-lg border border-[#1f1f28] overflow-hidden opacity-90">
-          <div className="relative w-full h-full bg-[#0f0f14] p-2">
-            <div className="text-[10px] text-[#64748b] mb-1 font-medium">Overview</div>
-            <div className="relative w-full h-[calc(100%-20px)] border border-[#1f1f28] rounded overflow-hidden">
-              {/* Mini version of the flowchart */}
-              <div className="absolute inset-0" style={{ transform: 'scale(0.08)', transformOrigin: 'top left' }}>
-                {nodes.map((node) => {
-                  const position = horizontalPositions.get(node.id);
-                  if (!position) return null;
-                  return (
-                    <div
-                      key={node.id}
-                      className="absolute w-[280px] h-[140px] bg-[#3b82f6]/30 rounded border border-[#3b82f6]/50"
-                      style={{
-                        left: position.x,
-                        top: position.y,
-                      }}
-                    />
-                  );
-                })}
+          {/* Legend */}
+          <div className="surface-card rounded-lg p-3 border border-[#1f1f28]">
+            <div className="text-[10px] font-semibold text-[#e2e8f0] mb-2">Legend</div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded bg-gradient-to-br from-[#3b82f6] to-[#2563eb]" />
+                <span className="text-[9px] text-[#94a3b8]">Phase</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded surface-card border border-[#1f1f28]" />
+                <span className="text-[9px] text-[#94a3b8]">Step</span>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </Panel>
+      </ReactFlow>
     </div>
   );
 }

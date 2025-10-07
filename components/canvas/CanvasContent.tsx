@@ -1,4 +1,3 @@
-// components/canvas/CanvasContent.tsx
 'use client';
 
 import { useMemo, useState } from 'react';

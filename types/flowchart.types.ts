@@ -16,8 +16,12 @@ export interface FlowchartEdge {
   id: string;
   source: string;
   target: string;
-  type?: 'default' | 'dependency' | 'parallel';
+  type?: 'default' | 'dependency' | 'parallel' | 'smoothstep';
   animated?: boolean;
+  style?: {
+    stroke?: string;
+    strokeWidth?: number;
+  };
 }
 
 export interface FlowchartState {
