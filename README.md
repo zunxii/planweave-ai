@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PlanWeave AI](docs/main.png)
+![PlanWeave AI](docs/githubzunxii.png)
 
 **An intelligent planning layer for your IDE that converts natural language requests into structured development plans**
 
@@ -74,7 +74,7 @@ PlanWeave AI is a **developer-focused assistant** for structured planning within
 
 ### Video & Screenshots
 
-* Demo Video: [YouTube](https://youtu.be/Xa32hMJkoUU?si=WzqsxPpvi0TtCaTC)
+* Demo Video: [YouTube]([https://youtu.be/Xa32hMJkoUU?si=WzqsxPpvi0TtCaTC](https://www.youtube.com/watch?v=Xa32hMJkoUU))
 * Plan Visualization:
   ![Timeline View](docs/interface.png)
 
